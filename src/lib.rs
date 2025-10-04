@@ -1,7 +1,7 @@
-use std::{env};
-use lettre::{Message, SmtpTransport, Transport};
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
+use lettre::{Message, SmtpTransport, Transport};
+use std::env;
 
 const GMAIL_USERNAME: &str = "GMAIL_USER";
 const GMAIL_APPLICATION_PASSWORD: &str = "GMAIL_APPLICATION_PASSWORD";
@@ -22,19 +22,22 @@ pub fn run(configuration: Configuration) {
 }
 
 fn build_email(configuration: &Configuration) -> Message {
-     Message::builder()
+    Message::builder()
         .from(configuration.username.parse().unwrap())
         .to(configuration.kindle_endpoint.parse().unwrap())
-        .subject("Test email")  // TODO from file title
+        .subject("Test email") // TODO from file title
         .header(ContentType::TEXT_PLAIN)
         .body(String::from("Yay!"))
         .unwrap()
 }
 
 fn get_gmail_mailer(configuration: &Configuration) -> SmtpTransport {
-    let credentials = Credentials::new(configuration.username.clone(), configuration.app_password.clone());
+    let credentials = Credentials::new(
+        configuration.username.clone(),
+        configuration.app_password.clone(),
+    );
 
-     SmtpTransport::relay("smtp.gmail.com")
+    SmtpTransport::relay("smtp.gmail.com")
         .unwrap()
         .credentials(credentials)
         .build()
@@ -54,12 +57,20 @@ pub struct Configuration {
 }
 
 impl Configuration {
-
     pub fn new() -> Self {
         Configuration {
-            username: env::var(GMAIL_USERNAME).expect("GMAIL_USERNAME must be set in the environment."),
-            app_password: env::var(GMAIL_APPLICATION_PASSWORD).expect("GMAIL_APPLICATION_PASSWORD must be set in the environment."),
-            kindle_endpoint: env::var(KINDLE_ENDPOINT).expect("KINDLE_ENDPOINT must be set in the environment."),
+            username: env::var(GMAIL_USERNAME)
+                .expect("GMAIL_USERNAME must be set in the environment."),
+            app_password: env::var(GMAIL_APPLICATION_PASSWORD)
+                .expect("GMAIL_APPLICATION_PASSWORD must be set in the environment."),
+            kindle_endpoint: env::var(KINDLE_ENDPOINT)
+                .expect("KINDLE_ENDPOINT must be set in the environment."),
         }
+    }
+}
+
+impl Default for Configuration {
+    fn default() -> Self {
+        Configuration::new()
     }
 }
