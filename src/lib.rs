@@ -7,7 +7,8 @@ use std::{env, fs};
 
 const GMAIL_USERNAME: &str = "GMAIL_USER";
 const GMAIL_APPLICATION_PASSWORD: &str = "GMAIL_APPLICATION_PASSWORD";
-const KINDLE_ENDPOINT: &str = "KINDLE_ENDPOINT";
+const EMAIL_RECIPIENT: &str = "EMAIL_RECIPIENT";
+
 
 pub fn run(configuration: Configuration) {
     // TODO providiing arguments
@@ -32,7 +33,7 @@ fn build_email(configuration: &Configuration) -> Message {
 
     Message::builder()
         .from(configuration.username.parse().unwrap())
-        .to(configuration.kindle_endpoint.parse().unwrap())
+        .to(configuration.email_recipient.parse().unwrap())
         // TODO better name for the tool and the subject.
         .subject(format!("Kindle Sender | {}", &filename)) // TODO from file title
         .multipart(
@@ -81,7 +82,7 @@ fn send_email(mailer: SmtpTransport, email: Message) {
 pub struct Configuration {
     username: String,
     app_password: String,
-    kindle_endpoint: String,
+    email_recipient: String,
 }
 
 impl Configuration {
@@ -91,8 +92,8 @@ impl Configuration {
                 .expect("GMAIL_USERNAME must be set in the environment."),
             app_password: env::var(GMAIL_APPLICATION_PASSWORD)
                 .expect("GMAIL_APPLICATION_PASSWORD must be set in the environment."),
-            kindle_endpoint: env::var(KINDLE_ENDPOINT)
-                .expect("KINDLE_ENDPOINT must be set in the environment."),
+            email_recipient: env::var(EMAIL_RECIPIENT)
+                .expect("EMAIL_RECIPIENT must be set in the environment."),
         }
     }
 }

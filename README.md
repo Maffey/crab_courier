@@ -1,8 +1,21 @@
-# rust-kindle-sender
+# c_c | crab_courier
 
-Send an e-book to your Kindle with your Gmail account.
+Send an e-book to a predefined receiver with your Gmail account and the help of the Crab Courier!
+
+Te main purpose of this tool is to have an easy-to-use tool for sending books to your Kindle endpoint.
 
 ## Prerequisites
 
-Requires `GMAIL_USER` and `GMAIL_APP_PASSWORD` env variables to be set to properly work.
-App password can be generate in Google account settings.
+Requires the following environmental variables to be configured:
+
+- `GMAIL_USER`: Your Gmail username.
+- `GMAIL_APP_PASSWORD`: Application password for your Gmail account. Can be generated here: [App Passwords](https://myaccount.google.com/apppasswords)
+- `EMAIL_RECIPIENT`: The address to which send the book. Usually your custom e-mail (with `@kindle.com`).
+
+## Usage
+
+Right now, limited to `.epub` files.
+
+```shell
+c_c <path_to_epub>
+```
