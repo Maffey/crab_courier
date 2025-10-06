@@ -2,6 +2,7 @@ use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use std::{env, fs};
+use std::path::Path;
 use lettre::message::{Attachment, MultiPart, SinglePart};
 
 const GMAIL_USERNAME: &str = "GMAIL_USER";
@@ -22,26 +23,34 @@ pub fn run(configuration: Configuration) {
 }
 
 fn build_email(configuration: &Configuration) -> Message {
-    // TODO send actual attachement
-    let filename = String::from("the_great_gatsby.epub");
-    // TODO change expects and unwraps to ?, return Result from function
-    let filebody = fs::read("data/the_great_gatsby.epub").expect("Unable to read file for attachment.");
-
-    // TODO mime guessing based on file extension
-    let content_type = ContentType::parse("application/epub+zip").unwrap();
-    let attachement = Attachment::new(filename).body(filebody, content_type);
-    // TODO refactor into smaller functions
-
-    let text_message = SinglePart::builder()
-        .header(ContentType::TEXT_PLAIN)
-        .body(String::from("Yay!"));
+    let path_to_ebook = Path::new("data/the_great_gatsby.epub");
+    // TODO chain of unwraps required cause either might not be a path, or not valid utf-8.
+    let filename = path_to_ebook.file_name().unwrap().to_str().unwrap().to_string();
 
     Message::builder()
         .from(configuration.username.parse().unwrap())
         .to(configuration.kindle_endpoint.parse().unwrap())
-        .subject("Test email") // TODO from file title
-        .multipart(MultiPart::mixed().singlepart(text_message).singlepart(attachement))
+        .subject(format!("Kindle Sender | {}", &filename)) // TODO from file title
+        .multipart(MultiPart::mixed()
+            .singlepart(get_text_part())
+            .singlepart(get_attachement(path_to_ebook, filename)))
         .unwrap()
+}
+
+fn get_attachement(path_to_ebook: &Path, filename: String) -> SinglePart {
+    // TODO change expects and unwraps to ?, return Result from function
+    let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment.");
+
+    // TODO mime guessing based on file extension
+    let content_type = ContentType::parse("application/epub+zip").unwrap();
+
+    Attachment::new(filename).body(filebody, content_type)
+}
+
+fn get_text_part() -> SinglePart {
+    SinglePart::builder()
+        .header(ContentType::TEXT_PLAIN)
+        .body(String::from("Yay!"))
 }
 
 fn get_gmail_mailer(configuration: &Configuration) -> SmtpTransport {
