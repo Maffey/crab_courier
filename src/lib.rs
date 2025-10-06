@@ -1,19 +1,19 @@
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
-use std::env;
+use std::{env, fs};
+use lettre::message::{Attachment, MultiPart, SinglePart};
 
 const GMAIL_USERNAME: &str = "GMAIL_USER";
 const GMAIL_APPLICATION_PASSWORD: &str = "GMAIL_APPLICATION_PASSWORD";
 const KINDLE_ENDPOINT: &str = "KINDLE_ENDPOINT";
 
 pub fn run(configuration: Configuration) {
+    // TODO providiing arguments
+    // TODO put into multiple files
     println!("Preparing e-mail...");
 
-    // TODO send actual attachement
-    // let filename = "data/attachment.txt";
-    // let file_path = Path::new(&filename);
-    // let file_body = fs::read(file_path);
+
 
     let email = build_email(&configuration);
     let mailer = get_gmail_mailer(&configuration);
@@ -22,12 +22,25 @@ pub fn run(configuration: Configuration) {
 }
 
 fn build_email(configuration: &Configuration) -> Message {
+    // TODO send actual attachement
+    let filename = String::from("the_great_gatsby.epub");
+    // TODO change expects and unwraps to ?, return Result from function
+    let filebody = fs::read("data/the_great_gatsby.epub").expect("Unable to read file for attachment.");
+
+    // TODO mime guessing based on file extension
+    let content_type = ContentType::parse("application/epub+zip").unwrap();
+    let attachement = Attachment::new(filename).body(filebody, content_type);
+    // TODO refactor into smaller functions
+
+    let text_message = SinglePart::builder()
+        .header(ContentType::TEXT_PLAIN)
+        .body(String::from("Yay!"));
+
     Message::builder()
         .from(configuration.username.parse().unwrap())
         .to(configuration.kindle_endpoint.parse().unwrap())
         .subject("Test email") // TODO from file title
-        .header(ContentType::TEXT_PLAIN)
-        .body(String::from("Yay!"))
+        .multipart(MultiPart::mixed().singlepart(text_message).singlepart(attachement))
         .unwrap()
 }
 
