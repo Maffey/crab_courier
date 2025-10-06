@@ -10,3 +10,4 @@ readme = "README.md"
 clap = { version = "4.5.48", features = ["derive"] }
 dotenvy = "0.15.7"
 lettre = "0.11.18"
+mime_guess = "2.0.5"

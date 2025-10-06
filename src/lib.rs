@@ -45,8 +45,8 @@ fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
     // TODO change expects and unwraps to ?, return Result from function
     let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment.");
 
-    // TODO mime guessing based on file extension
-    let content_type = ContentType::parse("application/epub+zip").unwrap();
+    let guessed_mime = mime_guess::from_path(path_to_ebook).first().unwrap().to_string();
+    let content_type = ContentType::parse(&guessed_mime).unwrap();
 
     Attachment::new(filename).body(filebody, content_type)
 }
