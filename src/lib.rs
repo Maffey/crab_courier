@@ -1,9 +1,9 @@
 use lettre::message::header::ContentType;
+use lettre::message::{Attachment, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
-use std::{env, fs};
 use std::path::Path;
-use lettre::message::{Attachment, MultiPart, SinglePart};
+use std::{env, fs};
 
 const GMAIL_USERNAME: &str = "GMAIL_USER";
 const GMAIL_APPLICATION_PASSWORD: &str = "GMAIL_APPLICATION_PASSWORD";
@@ -14,8 +14,6 @@ pub fn run(configuration: Configuration) {
     // TODO put into multiple files
     println!("Preparing e-mail...");
 
-
-
     let email = build_email(&configuration);
     let mailer = get_gmail_mailer(&configuration);
 
@@ -25,19 +23,27 @@ pub fn run(configuration: Configuration) {
 fn build_email(configuration: &Configuration) -> Message {
     let path_to_ebook = Path::new("data/the_great_gatsby.epub");
     // TODO chain of unwraps required cause either might not be a path, or not valid utf-8.
-    let filename = path_to_ebook.file_name().unwrap().to_str().unwrap().to_string();
+    let filename = path_to_ebook
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
     Message::builder()
         .from(configuration.username.parse().unwrap())
         .to(configuration.kindle_endpoint.parse().unwrap())
+        // TODO better name for the tool and the subject.
         .subject(format!("Kindle Sender | {}", &filename)) // TODO from file title
-        .multipart(MultiPart::mixed()
-            .singlepart(get_text_part())
-            .singlepart(get_attachement(path_to_ebook, filename)))
+        .multipart(
+            MultiPart::mixed()
+                .singlepart(get_text_part())
+                .singlepart(get_attachment(path_to_ebook, filename)),
+        )
         .unwrap()
 }
 
-fn get_attachement(path_to_ebook: &Path, filename: String) -> SinglePart {
+fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
     // TODO change expects and unwraps to ?, return Result from function
     let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment.");
 
