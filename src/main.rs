@@ -1,5 +1,5 @@
 use dotenvy::dotenv;
-use rust_kindle_sender::{Configuration, run};
+use crab_courier::{Configuration, run};
 
 fn main() {
     dotenv().ok();
