@@ -2,7 +2,7 @@
 name = "crab_courier"
 version = "0.1.0"
 edition = "2024"
-description = "Send an e-book to a predefined receiver with your Gmail account and the help of the Crab Courier!"
+description = "Send an attachment to a predefined receiver with your Gmail account and the help of the Crab Courier!"
 authors = [ "Mateusz Kuniczuk <mateuszkuniczuk98@gmail.com" ]
 readme = "README.md"
 
