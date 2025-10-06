@@ -105,6 +105,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "crab_courier"
+version = "0.1.0"
+dependencies = [
+ "dotenvy",
+ "lettre",
+]
+
+[[package]]
 name = "displaydoc"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -616,14 +624,6 @@ name = "r-efi"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
-
-[[package]]
-name = "rust_kindle_sender"
-version = "0.1.0"
-dependencies = [
- "dotenvy",
- "lettre",
-]
 
 [[package]]
 name = "rustc-demangle"
