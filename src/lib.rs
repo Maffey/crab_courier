@@ -5,6 +5,7 @@ use lettre::{Message, SmtpTransport, Transport};
 use std::path::Path;
 use std::{env, fs};
 
+const APPLICATION_NAME: &str = "c_c";
 const GMAIL_USERNAME: &str = "GMAIL_USER";
 const GMAIL_APPLICATION_PASSWORD: &str = "GMAIL_APPLICATION_PASSWORD";
 const EMAIL_RECIPIENT: &str = "EMAIL_RECIPIENT";
@@ -12,7 +13,7 @@ const EMAIL_RECIPIENT: &str = "EMAIL_RECIPIENT";
 
 pub fn run(configuration: Configuration) {
     // TODO providiing arguments
-    // TODO put into multiple files
+    // TODO refactor into multiple files
     println!("Preparing e-mail...");
 
     let email = build_email(&configuration);
@@ -22,7 +23,7 @@ pub fn run(configuration: Configuration) {
 }
 
 fn build_email(configuration: &Configuration) -> Message {
-    let path_to_ebook = Path::new("data/the_great_gatsby.epub");
+    let path_to_ebook = Path::new("test_data/the_great_gatsby.epub");
     // TODO chain of unwraps required cause either might not be a path, or not valid utf-8.
     let filename = path_to_ebook
         .file_name()
@@ -35,7 +36,7 @@ fn build_email(configuration: &Configuration) -> Message {
         .from(configuration.username.parse().unwrap())
         .to(configuration.email_recipient.parse().unwrap())
         // TODO better name for the tool and the subject.
-        .subject(format!("Kindle Sender | {}", &filename)) // TODO from file title
+        .subject(format!("{APPLICATION_NAME} | {filename}"))
         .multipart(
             MultiPart::mixed()
                 .singlepart(get_text_part())

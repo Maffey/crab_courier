@@ -1,4 +1,4 @@
 /.idea
 /target
 .env
-/data
+/test_data
