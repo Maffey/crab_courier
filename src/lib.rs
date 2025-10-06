@@ -10,7 +10,6 @@ const GMAIL_USERNAME: &str = "GMAIL_USER";
 const GMAIL_APPLICATION_PASSWORD: &str = "GMAIL_APPLICATION_PASSWORD";
 const EMAIL_RECIPIENT: &str = "EMAIL_RECIPIENT";
 
-
 pub fn run(env_variables: EnvVariables, path_to_ebook: &str) {
     println!("Sending e-mail...");
     let email = build_email(&env_variables, path_to_ebook);
@@ -45,7 +44,10 @@ fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
     // TODO change expects and unwraps to ?, return Result from function
     let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment.");
 
-    let guessed_mime = mime_guess::from_path(path_to_ebook).first().unwrap().to_string();
+    let guessed_mime = mime_guess::from_path(path_to_ebook)
+        .first()
+        .unwrap()
+        .to_string();
     let content_type = ContentType::parse(&guessed_mime).unwrap();
 
     Attachment::new(filename).body(filebody, content_type)

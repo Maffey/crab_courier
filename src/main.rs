@@ -1,7 +1,7 @@
-use dotenvy::dotenv;
+use crate::cli::get_arguments;
 use crab_courier::EnvVariables;
 use crab_courier::run;
-use crate::cli::get_arguments;
+use dotenvy::dotenv;
 
 mod cli;
 
