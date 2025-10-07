@@ -1,3 +1,4 @@
+use std::process;
 use crate::cli::get_arguments;
 use crab_courier::EnvVariables;
 use crab_courier::run;
@@ -20,5 +21,14 @@ fn main() {
     let env_variables = EnvVariables::default();
     let args = get_arguments();
     println!("{CRAB_COURIER_LOGO}");
-    run(env_variables, &args.path_to_ebook);
+
+    match run(env_variables, &args.path_to_ebook) {
+        Ok(_) => {
+            println!("Email has been delivered successfully!");
+        }
+        Err(error) => {
+            eprintln!("Failed to deliver the email with attachment to the recipient. Cause: {error:?}");
+            process::exit(1);
+        }
+    }
 }

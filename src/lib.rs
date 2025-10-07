@@ -4,45 +4,50 @@ use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use std::path::Path;
 use std::{env, fs};
+use anyhow::{Context, Result};
 
-const APPLICATION_NAME: &str = "c_c";
+const APP_SHORT_NAME: &str = "c_c";
 const GMAIL_USERNAME: &str = "GMAIL_USER";
 const GMAIL_APPLICATION_PASSWORD: &str = "GMAIL_APPLICATION_PASSWORD";
 const EMAIL_RECIPIENT: &str = "EMAIL_RECIPIENT";
 
-pub fn run(env_variables: EnvVariables, path_to_ebook: &str) {
-    println!("Sending e-mail...");
-    let email = build_email(&env_variables, path_to_ebook);
+const EMAIL_MESSAGE: &str = r#"
+The requested book is attached to this email.
+
+Delivered by c_c
+"#;
+
+pub fn run(env_variables: EnvVariables, path_to_ebook: &str) -> Result<()> {
+    let email = build_email(&env_variables, path_to_ebook).context("Failed to build the email")?;
     let mailer = get_gmail_mailer(&env_variables);
 
-    send_email(mailer, email);
+    send_email(mailer, email).context("Failed to send the email")?;
+
+    Ok(())
 }
 
-fn build_email(env_variables: &EnvVariables, path_to_ebook: &str) -> Message {
+fn build_email(env_variables: &EnvVariables, path_to_ebook: &str) -> Result<Message> {
     let path_to_ebook = Path::new(path_to_ebook);
-    // TODO chain of unwraps required cause either might not be a path, or not valid utf-8.
     let filename = path_to_ebook
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
+        .file_name().context("Provided path has no valid file name")?
+        .to_str().context("The filename contains invalid UTF-8 characters")?
         .to_string();
 
     Message::builder()
-        .from(env_variables.username.parse().unwrap())
-        .to(env_variables.email_recipient.parse().unwrap())
-        .subject(format!("{APPLICATION_NAME} | {filename}"))
+        .from(env_variables.username
+            .parse()
+            .context("Failed to parse username.")?)
+        .to(env_variables.email_recipient.parse().context("Failed to parse email recipient")?)
+        .subject(format!("{APP_SHORT_NAME} | {filename}"))
         .multipart(
             MultiPart::mixed()
                 .singlepart(get_text_part())
                 .singlepart(get_attachment(path_to_ebook, filename)),
-        )
-        .unwrap()
+        ).context("Failed to build email message")
 }
 
 fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
-    // TODO change expects and unwraps to ?, return Result from function
-    let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment.");
+    let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment");
 
     let guessed_mime = mime_guess::from_path(path_to_ebook)
         .first()
@@ -56,7 +61,7 @@ fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
 fn get_text_part() -> SinglePart {
     SinglePart::builder()
         .header(ContentType::TEXT_PLAIN)
-        .body(String::from("Yay!"))
+        .body(String::from(EMAIL_MESSAGE))
 }
 
 fn get_gmail_mailer(env_variables: &EnvVariables) -> SmtpTransport {
@@ -66,16 +71,14 @@ fn get_gmail_mailer(env_variables: &EnvVariables) -> SmtpTransport {
     );
 
     SmtpTransport::relay("smtp.gmail.com")
-        .unwrap()
+        .expect("Failed to establish fail connection with email server")
         .credentials(credentials)
         .build()
 }
 
-fn send_email(mailer: SmtpTransport, email: Message) {
-    match mailer.send(&email) {
-        Ok(_) => println!("Email sent successfully!"),
-        Err(e) => panic!("Could not send email: {e:?}"),
-    }
+fn send_email(mailer: SmtpTransport, email: Message) -> Result<()> {
+    mailer.send(&email).context("Failed to send an email")?;
+    Ok(())
 }
 
 pub struct EnvVariables {
