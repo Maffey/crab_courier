@@ -215,6 +215,7 @@ dependencies = [
  "dotenvy",
  "lettre",
  "mime_guess",
+ "tempfile",
 ]
 
 [[package]]

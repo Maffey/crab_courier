@@ -114,3 +114,42 @@ impl Default for EnvVariables {
         EnvVariables::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use std::io::Write;
+    use std::path::PathBuf;
+    use tempfile::{TempDir, tempdir};
+
+    #[test]
+    fn test_get_text_part_content() {
+        let text_part = get_text_part();
+        let body_str = String::from_utf8(text_part.raw_body().to_vec()).unwrap();
+
+        assert!(body_str.contains("The requested book is attached to this email."));
+        assert!(body_str.contains("Delivered by c_c | crab_courier"));
+    }
+
+    #[test]
+    fn test_get_attachment() {
+        let fake_ebook_name = "fake_ebook.epub";
+        let file_content = "This is a pretty useless book.";
+        // Need to get temp_dir so it, and created file, exists in the scope until end of the test
+        let (_temp_dir, file_path) = create_temp_file(fake_ebook_name, file_content);
+
+        let attachment = get_attachment(&file_path, fake_ebook_name.to_string().clone());
+        let attachment_body = String::from_utf8(attachment.raw_body().to_vec()).unwrap();
+
+        assert_eq!(attachment_body.trim(), file_content);
+    }
+
+    fn create_temp_file(filename: &str, content: &str) -> (TempDir, PathBuf) {
+        let dir = tempdir().expect("Failed to create temporary directory");
+        let file_path = dir.path().join(filename);
+        let mut file = File::create(&file_path).expect("Failed to create temporary file");
+        writeln!(file, "{}", content).expect("Failed to write to temporary file");
+        (dir, file_path)
+    }
+}
