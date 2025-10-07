@@ -19,5 +19,5 @@ A `.env` file can be used.c
 Right now, limited to `.epub` files.
 
 ```shell
-c_c <path_to_epub>
+crab_courier <path_to_epub>
 ```
