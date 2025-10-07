@@ -16,7 +16,6 @@ _________              ___.   _________                     .__
 "#;
 
 fn main() {
-    // TODO tests
     dotenv().ok();
     let env_variables = EnvVariables::default();
     let args = get_arguments();
