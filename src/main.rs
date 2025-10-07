@@ -1,8 +1,8 @@
-use std::process;
 use crate::cli::get_arguments;
 use crab_courier::EnvVariables;
 use crab_courier::run;
 use dotenvy::dotenv;
+use std::process;
 
 mod cli;
 
@@ -20,14 +20,16 @@ fn main() {
     dotenv().ok();
     let env_variables = EnvVariables::default();
     let args = get_arguments();
-    println!("{CRAB_COURIER_LOGO}");
+    println!("{CRAB_COURIER_LOGO}\nPreparing the email...");
 
     match run(env_variables, &args.path_to_ebook) {
         Ok(_) => {
-            println!("Email has been delivered successfully!");
+            println!("Email has been sent successfully!");
         }
         Err(error) => {
-            eprintln!("Failed to deliver the email with attachment to the recipient. Cause: {error:?}");
+            eprintln!(
+                "Failed to send the email with attachment to the recipient. Cause: {error:?}"
+            );
             process::exit(1);
         }
     }

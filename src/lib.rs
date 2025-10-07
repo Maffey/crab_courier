@@ -1,10 +1,10 @@
+use anyhow::{Context, Result};
 use lettre::message::header::ContentType;
 use lettre::message::{Attachment, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use std::path::Path;
 use std::{env, fs};
-use anyhow::{Context, Result};
 
 const APP_SHORT_NAME: &str = "c_c";
 const GMAIL_USERNAME: &str = "GMAIL_USER";
@@ -14,7 +14,7 @@ const EMAIL_RECIPIENT: &str = "EMAIL_RECIPIENT";
 const EMAIL_MESSAGE: &str = r#"
 The requested book is attached to this email.
 
-Delivered by c_c
+Delivered by c_c | crab_courier
 "#;
 
 pub fn run(env_variables: EnvVariables, path_to_ebook: &str) -> Result<()> {
@@ -29,21 +29,30 @@ pub fn run(env_variables: EnvVariables, path_to_ebook: &str) -> Result<()> {
 fn build_email(env_variables: &EnvVariables, path_to_ebook: &str) -> Result<Message> {
     let path_to_ebook = Path::new(path_to_ebook);
     let filename = path_to_ebook
-        .file_name().context("Provided path has no valid file name")?
-        .to_str().context("The filename contains invalid UTF-8 characters")?
+        .file_name()
+        .context("Provided path has no valid file name")?
+        .to_str()
+        .context("The filename contains invalid UTF-8 characters")?
         .to_string();
 
     Message::builder()
-        .from(env_variables.username
+        .from(
+            env_variables
+                .username
+                .parse()
+                .context("Failed to parse username.")?,
+        )
+        .to(env_variables
+            .email_recipient
             .parse()
-            .context("Failed to parse username.")?)
-        .to(env_variables.email_recipient.parse().context("Failed to parse email recipient")?)
+            .context("Failed to parse email recipient")?)
         .subject(format!("{APP_SHORT_NAME} | {filename}"))
         .multipart(
             MultiPart::mixed()
                 .singlepart(get_text_part())
                 .singlepart(get_attachment(path_to_ebook, filename)),
-        ).context("Failed to build email message")
+        )
+        .context("Failed to build email message")
 }
 
 fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
