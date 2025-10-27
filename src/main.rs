@@ -1,5 +1,5 @@
 use crate::cli::get_arguments;
-use crab_courier::EnvVariables;
+use crab_courier::Secrets;
 use crab_courier::run;
 use dotenvy::dotenv;
 use std::process;
@@ -17,7 +17,7 @@ _________              ___.   _________                     .__
 
 fn main() {
     dotenv().ok();
-    let env_variables = EnvVariables::default();
+    let env_variables = Secrets::default();
     let args = get_arguments();
     println!("{CRAB_COURIER_LOGO}\nPreparing the email...");
 

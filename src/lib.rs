@@ -17,7 +17,7 @@ The requested book is attached to this email.
 Delivered by c_c | crab_courier
 "#;
 
-pub fn run(env_variables: EnvVariables, path_to_ebook: &str) -> Result<()> {
+pub fn run(env_variables: Secrets, path_to_ebook: &str) -> Result<()> {
     let email = build_email(&env_variables, path_to_ebook).context("Failed to build the email")?;
     let mailer = get_gmail_mailer(&env_variables);
 
@@ -26,7 +26,7 @@ pub fn run(env_variables: EnvVariables, path_to_ebook: &str) -> Result<()> {
     Ok(())
 }
 
-fn build_email(env_variables: &EnvVariables, path_to_ebook: &str) -> Result<Message> {
+fn build_email(env_variables: &Secrets, path_to_ebook: &str) -> Result<Message> {
     let path_to_ebook = Path::new(path_to_ebook);
     let filename = path_to_ebook
         .file_name()
@@ -73,7 +73,7 @@ fn get_text_part() -> SinglePart {
         .body(String::from(EMAIL_MESSAGE))
 }
 
-fn get_gmail_mailer(env_variables: &EnvVariables) -> SmtpTransport {
+fn get_gmail_mailer(env_variables: &Secrets) -> SmtpTransport {
     let credentials = Credentials::new(
         env_variables.username.clone(),
         env_variables.app_password.clone(),
@@ -90,15 +90,15 @@ fn send_email(mailer: SmtpTransport, email: Message) -> Result<()> {
     Ok(())
 }
 
-pub struct EnvVariables {
+pub struct Secrets {
     username: String,
     app_password: String,
     email_recipient: String,
 }
 
-impl EnvVariables {
+impl Secrets {
     pub fn new() -> Self {
-        EnvVariables {
+        Secrets {
             username: env::var(GMAIL_USERNAME)
                 .expect("GMAIL_USERNAME must be set in the environment."),
             app_password: env::var(GMAIL_APPLICATION_PASSWORD)
@@ -109,9 +109,9 @@ impl EnvVariables {
     }
 }
 
-impl Default for EnvVariables {
+impl Default for Secrets {
     fn default() -> Self {
-        EnvVariables::new()
+        Secrets::new()
     }
 }
 
