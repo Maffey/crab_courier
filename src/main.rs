@@ -1,10 +1,6 @@
-use crate::cli::get_arguments;
-use crab_courier::EnvVariables;
-use crab_courier::run;
+use crab_courier::{get_arguments, run};
 use dotenvy::dotenv;
 use std::process;
-
-mod cli;
 
 const CRAB_COURIER_LOGO: &str = r#"
 _________              ___.   _________                     .__
@@ -17,11 +13,10 @@ _________              ___.   _________                     .__
 
 fn main() {
     dotenv().ok();
-    let env_variables = EnvVariables::default();
     let args = get_arguments();
     println!("{CRAB_COURIER_LOGO}\nPreparing the email...");
 
-    match run(env_variables, &args.path_to_ebook) {
+    match run(&args) {
         Ok(_) => {
             println!("Email has been sent successfully!");
         }
