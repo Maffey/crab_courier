@@ -12,7 +12,7 @@ Requires the following environmental variables to be configured:
 - `GMAIL_APP_PASSWORD`: Application password for your Gmail account. Can be generated here: [App Passwords](https://myaccount.google.com/apppasswords)
 - `EMAIL_RECIPIENT`: The address to which send the book. Usually your custom e-mail (with `@kindle.com`).
 
-A `.env` file can be used.c
+A `.env` file can be used.
 
 ## Usage
 
