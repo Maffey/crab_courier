@@ -1,8 +1,8 @@
 use crab_courier::{get_arguments, run};
 use dotenvy::dotenv;
+use indicatif::ProgressBar;
 use std::process;
 use std::time::Duration;
-use indicatif::ProgressBar;
 
 const CRAB_COURIER_LOGO: &str = r#"
 _________              ___.   _________                     .__
@@ -33,5 +33,4 @@ fn main() {
             process::exit(1);
         }
     }
-
 }
