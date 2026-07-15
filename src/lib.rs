@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
+use clap::Parser;
 use lettre::message::header::ContentType;
 use lettre::message::{Attachment, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
-use std::path::Path;
 use std::fs;
-use clap::Parser;
+use std::path::Path;
 
 const APP_SHORT_NAME: &str = "c_c";
 
@@ -42,8 +42,8 @@ pub fn get_arguments() -> Arguments {
 }
 
 pub fn run(arguments: &Arguments) -> Result<()> {
-    let email = build_email(&arguments).context("Failed to build the email")?;
-    let mailer = get_gmail_mailer(&arguments);
+    let email = build_email(arguments).context("Failed to build the email")?;
+    let mailer = get_gmail_mailer(arguments);
 
     send_email(mailer, email).context("Failed to send the email")?;
 
@@ -98,10 +98,7 @@ fn get_text_part() -> SinglePart {
 }
 
 fn get_gmail_mailer(arguments: &Arguments) -> SmtpTransport {
-    let credentials = Credentials::new(
-        arguments.username.clone(),
-        arguments.password.clone(),
-    );
+    let credentials = Credentials::new(arguments.username.clone(), arguments.password.clone());
 
     SmtpTransport::relay("smtp.gmail.com")
         .expect("Failed to establish fail connection with email server")
@@ -120,7 +117,7 @@ mod tests {
     use std::fs::File;
     use std::io::Write;
     use std::path::PathBuf;
-    use tempfile::{tempdir, TempDir};
+    use tempfile::{TempDir, tempdir};
 
     #[test]
     fn test_get_text_part_content() {
