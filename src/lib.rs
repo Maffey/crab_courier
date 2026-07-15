@@ -1,11 +1,13 @@
 use anyhow::{Context, Result};
+use clap::Parser;
 use lettre::message::header::ContentType;
 use lettre::message::{Attachment, MultiPart, SinglePart};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
-use std::path::Path;
 use std::fs;
-use clap::Parser;
+use std::path::Path;
+use std::time::Duration;
+use indicatif::ProgressBar;
 
 const APP_SHORT_NAME: &str = "c_c";
 
@@ -15,16 +17,43 @@ The requested book is attached to this email.
 Delivered by c_c | crab_courier
 "#;
 
-pub fn run(arguments: &Arguments) -> Result<()> {
-    let email = build_email(&arguments).context("Failed to build the email")?;
-    let mailer = get_gmail_mailer(&arguments);
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+pub struct Arguments {
+    /// The path to ebook file to send to the recipient.
+    path_to_ebook: String,
 
-    send_email(mailer, email).context("Failed to send the email")?;
+    /// The Gmail username to send email from.
+    /// Can also be set using the environment variable.
+    #[arg(long, short, env = "GMAIL_USERNAME")]
+    username: String,
+
+    /// The Gmail application password.
+    /// Can also be set using the environment variable.
+    #[arg(long, short, env = "GMAIL_APPLICATION_PASSWORD")]
+    password: String,
+
+    /// The email address of the recipient.
+    /// Can also be set using the environment variable.
+    #[arg(long, short, env = "EMAIL_RECIPIENT")]
+    recipient: String,
+}
+
+pub fn get_arguments() -> Arguments {
+    Arguments::parse()
+}
+
+pub fn run(arguments: &Arguments) -> Result<()> {
+    let email = build_email(arguments).context("Failed to build the email")?;
+    let mailer = get_gmail_mailer(arguments);
+
+    send_email(mailer, email)?;
 
     Ok(())
 }
 
 fn build_email(arguments: &Arguments) -> Result<Message> {
+    // TODO allow for multiple arguments, send multiple files
     let path_to_ebook = Path::new(&arguments.path_to_ebook);
     let filename = path_to_ebook
         .file_name()
@@ -54,6 +83,7 @@ fn build_email(arguments: &Arguments) -> Result<Message> {
 }
 
 fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
+    // TODO propagate errors instead of unwrap
     let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment");
 
     let guessed_mime = mime_guess::from_path(path_to_ebook)
@@ -72,11 +102,8 @@ fn get_text_part() -> SinglePart {
 }
 
 fn get_gmail_mailer(arguments: &Arguments) -> SmtpTransport {
-    let credentials = Credentials::new(
-        arguments.username.clone(),
-        arguments.password.clone(),
-    );
-
+    let credentials = Credentials::new(arguments.username.clone(), arguments.password.clone());
+    // TODO multiple SMTP servers
     SmtpTransport::relay("smtp.gmail.com")
         .expect("Failed to establish fail connection with email server")
         .credentials(credentials)
@@ -94,7 +121,7 @@ mod tests {
     use std::fs::File;
     use std::io::Write;
     use std::path::PathBuf;
-    use tempfile::{tempdir, TempDir};
+    use tempfile::{TempDir, tempdir};
 
     #[test]
     fn test_get_text_part_content() {
@@ -125,30 +152,4 @@ mod tests {
         writeln!(file, "{}", content).expect("Failed to write to temporary file");
         (dir, file_path)
     }
-}
-
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-pub struct Arguments {
-    /// The path to ebook file to send to the recipient.
-    path_to_ebook: String,
-
-    /// The Gmail username to send email from.
-    /// Can also be set using the environment variable.
-    #[arg(long, short, env = "GMAIL_USERNAME")]
-    username: String,
-
-    /// The Gmail application password.
-    /// Can also be set using the environment variable.
-    #[arg(long, short, env = "GMAIL_APPLICATION_PASSWORD")]
-    password: String,
-
-    /// The email address of the recipient.
-    /// Can also be set using the environment variable.
-    #[arg(long, short, env = "EMAIL_RECIPIENT")]
-    recipient: String,
-}
-
-pub fn get_arguments() -> Arguments {
-    Arguments::parse()
 }
