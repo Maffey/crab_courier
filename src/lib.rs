@@ -15,6 +15,32 @@ The requested book is attached to this email.
 Delivered by c_c | crab_courier
 "#;
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+pub struct Arguments {
+    /// The path to ebook file to send to the recipient.
+    path_to_ebook: String,
+
+    /// The Gmail username to send email from.
+    /// Can also be set using the environment variable.
+    #[arg(long, short, env = "GMAIL_USERNAME")]
+    username: String,
+
+    /// The Gmail application password.
+    /// Can also be set using the environment variable.
+    #[arg(long, short, env = "GMAIL_APPLICATION_PASSWORD")]
+    password: String,
+
+    /// The email address of the recipient.
+    /// Can also be set using the environment variable.
+    #[arg(long, short, env = "EMAIL_RECIPIENT")]
+    recipient: String,
+}
+
+pub fn get_arguments() -> Arguments {
+    Arguments::parse()
+}
+
 pub fn run(arguments: &Arguments) -> Result<()> {
     let email = build_email(&arguments).context("Failed to build the email")?;
     let mailer = get_gmail_mailer(&arguments);
@@ -125,30 +151,4 @@ mod tests {
         writeln!(file, "{}", content).expect("Failed to write to temporary file");
         (dir, file_path)
     }
-}
-
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-pub struct Arguments {
-    /// The path to ebook file to send to the recipient.
-    path_to_ebook: String,
-
-    /// The Gmail username to send email from.
-    /// Can also be set using the environment variable.
-    #[arg(long, short, env = "GMAIL_USERNAME")]
-    username: String,
-
-    /// The Gmail application password.
-    /// Can also be set using the environment variable.
-    #[arg(long, short, env = "GMAIL_APPLICATION_PASSWORD")]
-    password: String,
-
-    /// The email address of the recipient.
-    /// Can also be set using the environment variable.
-    #[arg(long, short, env = "EMAIL_RECIPIENT")]
-    recipient: String,
-}
-
-pub fn get_arguments() -> Arguments {
-    Arguments::parse()
 }
