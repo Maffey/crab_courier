@@ -6,6 +6,8 @@ use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use std::fs;
 use std::path::Path;
+use std::time::Duration;
+use indicatif::ProgressBar;
 
 const APP_SHORT_NAME: &str = "c_c";
 
@@ -45,12 +47,13 @@ pub fn run(arguments: &Arguments) -> Result<()> {
     let email = build_email(arguments).context("Failed to build the email")?;
     let mailer = get_gmail_mailer(arguments);
 
-    send_email(mailer, email).context("Failed to send the email")?;
+    send_email(mailer, email)?;
 
     Ok(())
 }
 
 fn build_email(arguments: &Arguments) -> Result<Message> {
+    // TODO allow for multiple arguments, send multiple files
     let path_to_ebook = Path::new(&arguments.path_to_ebook);
     let filename = path_to_ebook
         .file_name()
@@ -80,6 +83,7 @@ fn build_email(arguments: &Arguments) -> Result<Message> {
 }
 
 fn get_attachment(path_to_ebook: &Path, filename: String) -> SinglePart {
+    // TODO propagate errors instead of unwrap
     let filebody = fs::read(path_to_ebook).expect("Unable to read file for attachment");
 
     let guessed_mime = mime_guess::from_path(path_to_ebook)
@@ -99,7 +103,7 @@ fn get_text_part() -> SinglePart {
 
 fn get_gmail_mailer(arguments: &Arguments) -> SmtpTransport {
     let credentials = Credentials::new(arguments.username.clone(), arguments.password.clone());
-
+    // TODO multiple SMTP servers
     SmtpTransport::relay("smtp.gmail.com")
         .expect("Failed to establish fail connection with email server")
         .credentials(credentials)

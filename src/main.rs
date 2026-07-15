@@ -1,6 +1,8 @@
 use crab_courier::{get_arguments, run};
 use dotenvy::dotenv;
 use std::process;
+use std::time::Duration;
+use indicatif::ProgressBar;
 
 const CRAB_COURIER_LOGO: &str = r#"
 _________              ___.   _________                     .__
@@ -14,11 +16,15 @@ _________              ___.   _________                     .__
 fn main() {
     dotenv().ok();
     let args = get_arguments();
-    println!("{CRAB_COURIER_LOGO}\nPreparing the email...");
+    println!("{CRAB_COURIER_LOGO}");
+
+    let progress_bar = ProgressBar::new_spinner();
+    progress_bar.set_message("Preparing the email...");
+    progress_bar.enable_steady_tick(Duration::from_millis(100));
 
     match run(&args) {
         Ok(_) => {
-            println!("Email has been sent successfully!");
+            progress_bar.finish_with_message("Email sent successfully!");
         }
         Err(error) => {
             eprintln!(
@@ -27,4 +33,5 @@ fn main() {
             process::exit(1);
         }
     }
+
 }
